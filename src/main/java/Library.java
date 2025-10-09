@@ -2,6 +2,7 @@ import Utilities.Code;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -100,11 +101,110 @@ public class Library {
         }
     }
 
+    private Code initBooks(int bookCount, Scanner scan) {
+        if (bookCount < 1) {
+            return Code.LIBRARY_ERROR;
+        }
+
+        for (int i = 0; i < bookCount; i++) {
+            if (!scan.hasNextLine()) {
+                return Code.BOOK_RECORD_COUNT_ERROR;
+            }
+            String line = scan.nextLine();
+            String[] bits = line.split(", ", -1);
+
+            if (bits.length <= Book.DUE_DATE) {
+                return Code.BOOK_RECORD_COUNT_ERROR;
+            }
+
+            String isbn = bits[Book.ISBN_].trim();
+            String title = bits[Book.TITLE].trim();
+            String subject = bits[Book.SUBJECT_].trim();
+
+            int pages = convertInt(bits[Book.PAGE_COUNT_].trim(), Code.PAGE_COUNT_ERROR);
+            if (pages <= 0) {
+                return Code.PAGE_COUNT_ERROR;
+            }
+
+            String author = bits[Book.AUTHOR_].trim();
+
+            LocalDate dueDate = convertDate(bits[Book.DUE_DATE].trim(), Code.DATE_CONVERSION_ERROR);
+            if (dueDate == null) {
+                return Code.DATE_CONVERSION_ERROR;
+            }
+            Book newBook = new Book(isbn, title, subject, pages, author, dueDate);
+            addBook(newBook);
+        }
+        return Code.SUCCESS;
+    }
+
+    public Code addBook(Book newBook) {
+        return null;
+    }
+
+    public LocalDate convertDate(String date, Code errorCode) {
+        return null;
+    }
+
     public int listReaders() {
         return 0;
     }
-
     private Code initReader(int readerCount, Scanner scan) {
+        if (readerCount <= 0) {
+            return Code.READER_COUNT_ERROR;
+        }
+
+        for (int i = 0; i < readerCount; i++) {
+            if (!scan.hasNextLine()) {
+                return Code.READER_COUNT_ERROR;
+            }
+
+            String line = scan.nextLine();
+            String[] parts = line.split(", ", -1);
+
+            if (parts.length < Reader.NAME_) {
+                return Code.READER_COUNT_ERROR;
+            }
+
+            int cardNumber = convertInt(parts[Reader.CARD_NUMBER_].trim(), Code.READER_CARD_NUMBER_ERROR);
+            String name = parts[Reader.NAME_].trim();
+            String phone = parts[Reader.PHONE_].trim();
+
+            Reader reader = new Reader(cardNumber, name, phone);
+            readers.add(reader);
+
+            int bookCount = convertInt(parts[Reader.BOOK_COUNT_].trim(), Code.BOOK_COUNT_ERROR);
+
+            int start = Reader.BOOK_START_;
+            for (int b = 0; b < bookCount; b++) {
+                int isbnIndex = start + (b*2);
+                int date = isbnIndex + 1;
+
+                if (isbnIndex >= parts.length) {
+                    break;
+                }
+
+                String isbn = parts[isbnIndex].trim();
+                Book book = getBookByISBN(isbn);
+
+                if (book == null) {
+                    System.out.println("ERROR");
+                    continue;
+                }
+
+                String dateString = parts[date].trim();
+                LocalDate dueDate = convertDate(dateString, Code.DATE_CONVERSION_ERROR);
+                checkOutBook(reader, book);
+            }
+        }
+        return Code.SUCCESS;
+    }
+
+    public Code checkOutBook(Reader reader, Book book) {
+        return null;
+    }
+
+    public Book getBookByISBN(String isbn) {
         return null;
     }
 
@@ -112,7 +212,45 @@ public class Library {
         return  0;
     }
 
+
+
     private Code initShelves(int shelfCount, Scanner scan) {
+        if (shelfCount < 1) {
+            return Code.SHELF_NUMBER_PARSE_ERROR;
+        }
+
+        for (int i = 0; i < shelfCount; i++) {
+            if (!scan.hasNextLine()) {
+                return Code.SHELF_NUMBER_PARSE_ERROR;
+            }
+
+
+            String line = scan.nextLine();
+            String[] parts = line.split(", ", -1);
+
+            if (parts.length < 2) {
+                return Code.SHELF_NUMBER_PARSE_ERROR;
+            }
+
+            int shelfNumber = convertInt(parts[0].trim(), Code.SHELF_NUMBER_PARSE_ERROR);
+            if (shelfNumber < 1) {
+                return Code.SHELF_NUMBER_PARSE_ERROR;
+            }
+
+            String shelfSubject = parts[1].trim();
+            addShelf(shelfSubject);
+        }
+
+        if (shelves.size() == shelfCount) {
+            return Code.SUCCESS;
+        } else {
+            System.out.println("Number of shelves doesn't match expected");
+            return Code.SHELF_NUMBER_PARSE_ERROR;
+        }
+    }
+
+
+    public Code addShelf(String shelfSubject) {
         return null;
     }
 
@@ -120,9 +258,6 @@ public class Library {
         return 0;
     }
 
-    private Code initBooks(int bookCount, Scanner scan) {
-        return null;
-    }
 
     public static int convertInt(String recordCountString, Code code) {
         return 0;
