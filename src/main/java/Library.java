@@ -139,7 +139,62 @@ public class Library {
     }
 
     public Code addBook(Book newBook) {
-        return null;
+        Integer count = books.get(newBook);
+        if (count == null) {
+            books.put(newBook, 1);
+            System.out.println(newBook.getTitle() + " added to the stacks.");
+        } else {
+            int newCount = count + 1;
+            books.put(newBook, newCount);
+            System.out.println(newCount + " copies of " + newBook.getTitle() + " in the stacks.");
+        }
+
+        Shelf shelf = getShelf(newBook.getSubject());
+        if (shelf != null) {
+            shelf.addBook(newBook);
+            return Code.SUCCESS;
+        } else {
+            System.out.println("No shelf for " + newBook.getSubject() + " books");
+            return Code.SHELF_EXISTS_ERROR;
+        }
+    }
+
+    public Code returnBook(Reader reader, Book book) {
+        if(!reader.getBooks().contains(book)) {
+            System.out.println(reader.getName() + " doesn't have " + book.getTitle() + " checked out");
+            return Code.READER_DOESNT_HAVE_BOOK_ERROR;
+        }
+
+        if(!books.containsKey(book)) {
+            return Code.BOOK_NOT_IN_INVENTORY_ERROR;
+        }
+
+        System.out.println(reader.getName() + " is returning " + book.getTitle());
+
+        Code code = reader.removeBook(book);
+
+        if (code == Code.SUCCESS) {
+            Code shelfCode = returnBook(book);
+        } else {
+            System.out.println("Could not return " + book.getTitle());
+        }
+        return code;
+    }
+
+    public Code returnBook(Book book) {
+        Shelf shelf = getShelf(book.getSubject());
+
+        if (shelf == null) {
+            System.out.println("No shelf for " + book.getTitle());
+            return Code.SHELF_EXISTS_ERROR;
+        }
+
+        Code code = shelf.addBook(book);
+        return code;
+    }
+
+    public Shelf getShelf(String subject) {
+        return shelves.get(subject);
     }
 
     public LocalDate convertDate(String date, Code errorCode) {
