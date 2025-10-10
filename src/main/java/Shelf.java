@@ -2,7 +2,6 @@ import Utilities.Code;
 
 import java.util.HashMap;
 import java.util.Objects;
-import java.util.Random;
 
 public class Shelf {
     public static final int SHELF_NUMBER_ = 0;

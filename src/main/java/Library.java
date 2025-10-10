@@ -194,8 +194,23 @@ public class Library {
         return code;
     }
 
+    public Shelf getShelf(Integer shelfNumber) {
+        for (Shelf shelf : shelves.values()) {
+            if (shelf.getShelfNumber() == shelfNumber) {
+                return shelf;
+            }
+        }
+        System.out.println("No shelf number " + shelfNumber + " found");
+        return null;
+    }
+
     public Shelf getShelf(String subject) {
-        return shelves.get(subject);
+        if (shelves.containsKey(subject)) {
+            return shelves.get(subject);
+        } else {
+            System.out.println("No shelf for " + subject + " books");
+            return null;
+        }
     }
 
     public LocalDate convertDate(String date, Code errorCode) {
@@ -203,8 +218,26 @@ public class Library {
     }
 
     public int listReaders() {
-        return 0;
+        for (Reader reader : readers) {
+            System.out.println(reader);
+        }
+        return readers.size();
     }
+
+    public int listReaders(boolean showBooks) {
+        if (showBooks) {
+            for (Reader reader : readers) {
+                System.out.println(reader.getName() + "(" + reader.getCardNumber() + ") has the following books:");
+                System.out.println(reader.getBooks());
+            }
+        } else {
+            for (Reader reader : readers) {
+                System.out.println(reader);
+            }
+        }
+        return readers.size();
+    }
+
     private Code initReader(int readerCount, Scanner scan) {
         if (readerCount <= 0) {
             return Code.READER_COUNT_ERROR;
@@ -360,7 +393,26 @@ public class Library {
 
 
     public Code addShelf(String shelfSubject) {
-        return null;
+        int shelfNumber = shelves.size() + 1;
+        Shelf shelf = new Shelf(shelfNumber, shelfSubject);
+
+        return addShelf(shelf);
+    }
+
+    public Code addShelf(Shelf shelf) {
+        if (!shelves.containsKey(shelf.getSubject())) {
+            System.out.println("ERROR: Shelf already exists " + shelf);
+            return Code.SHELF_EXISTS_ERROR;
+        }
+
+        shelves.put(shelf.getSubject(), shelf);
+
+        for (Book book : books.keySet()) {
+            if (book.getSubject().equals(shelf.getSubject())) {
+                shelf.addBook(book);
+            }
+        }
+        return Code.SUCCESS;
     }
 
     public int listBooks() {
@@ -380,5 +432,15 @@ public class Library {
 
     public static int convertInt(String recordCountString, Code code) {
         return 0;
+    }
+
+    public Reader getReaderByCard(int cardNumber) {
+        for (Reader reader : readers) {
+            if (reader.getCardNumber() == cardNumber) {
+                return reader;
+            }
+        }
+        System.out.println("Could not find a reader with card #" + cardNumber);
+        return null;
     }
 }
