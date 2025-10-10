@@ -2,6 +2,7 @@ import Utilities.Code;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -256,15 +257,68 @@ public class Library {
     }
 
     public Code checkOutBook(Reader reader, Book book) {
-        return null;
+        if (!readers.contains(reader)) {
+            System.out.println(reader.getName() + " doesn't have an account here");
+            return Code.READER_NOT_IN_LIBRARY_ERROR;
+        }
+
+        if (reader.getBooks().size() >= LENDING_LIMIT) {
+            System.out.println(reader.getName() + " has reached the lending limit, (" + LENDING_LIMIT + ")");
+            return Code.BOOK_LIMIT_REACHED_ERROR;
+        }
+
+        if (!books.containsKey(book)) {
+            System.out.println("ERROR: could not find " + book.getTitle());
+            return Code.BOOK_NOT_IN_INVENTORY_ERROR;
+        }
+
+        Shelf shelf = getShelf(book.getSubject());
+        if (shelf == null) {
+            System.out.println("no shelf for " + book.getSubject() + " books!");
+            return Code.SHELF_EXISTS_ERROR;
+        }
+
+        int copies = books.get(book);
+        if (copies < 1) {
+            System.out.println("ERROR: no copes of " + book.getTitle() + " remain");
+            return Code.BOOK_NOT_IN_INVENTORY_ERROR;
+        }
+
+        Code code = reader.addBook(book);
+        if (code != Code.SUCCESS) {
+            System.out.println("Couldn't checkout " + book.getTitle());
+            return code;
+        }
+        Code removeCode = shelf.removeBook(book);
+        if (removeCode == Code.SUCCESS) {
+            System.out.println(book.getTitle() + " checked out successfully");
+        }
+        return removeCode;
     }
 
     public Book getBookByISBN(String isbn) {
+        for (Book book : books.keySet()) {
+            if (book.getIsbn().equals(isbn)) {
+                return book;
+            }
+        }
+        System.out.println("ERROR: Could not find a book with isbn: " + isbn);
         return null;
     }
 
     public int listShelves() {
-        return  0;
+        return listShelves(false);
+    }
+
+    public int listShelves(boolean showBooks) {
+        for (Shelf shelf : shelves.values()) {
+            if (showBooks) {
+                shelf.listBooks();
+            } else {
+                System.out.println(shelf);
+            }
+        }
+        return shelves.size();
     }
 
 
@@ -310,7 +364,17 @@ public class Library {
     }
 
     public int listBooks() {
-        return 0;
+        int total = 0;
+
+        for (Book book : books.keySet()) {
+            int count = books.get(book);
+            total += count;
+
+            System.out.println(count + " copies of "
+                    + book.getTitle() + " by "
+                    + book.getAuthor() + " ISBN:" + book.getIsbn());
+        }
+        return total;
     }
 
 
