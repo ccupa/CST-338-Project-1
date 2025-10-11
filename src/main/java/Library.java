@@ -463,4 +463,68 @@ public class Library {
         }
         return Code.SUCCESS;
     }
+
+    public Code removeReader(Reader reader) {
+        if (!readers.contains(reader)) {
+            System.out.println(reader.getName() + " is not part of this Library");
+            return Code.READER_NOT_IN_LIBRARY_ERROR;
+        }
+
+        if (reader.getBooks().size() > 0) {
+            System.out.println(reader.getName() + " must return all books!");
+            return Code.READER_STILL_HAS_BOOKS_ERROR;
+        }
+
+        readers.remove(reader);
+
+        System.out.println(reader.getName() + " removed from the library.");
+
+        return Code.SUCCESS;
+    }
+
+    public static LocalDate covertDate(String date, Code errorCode) {
+        String[] bits = date.split("-");
+
+        if (bits.length != 3) {
+            System.out.println("ERROR: date conversion, could not parse " + date);
+            System.out.println("using default date (01-jan-1970)");
+            return LocalDate.of(1970,1, 1);
+        }
+
+        try {
+            int year = Integer.parseInt(bits[0]);
+            int month = Integer.parseInt(bits[1]);
+            int day = Integer.parseInt(bits[2]);
+
+            if (year < 0 || month < 0 || day < 0) {
+                System.out.println("Error converting date: Year " + year);
+                System.out.println("Error converting date: Month " + month);
+                System.out.println("Error converting date: Dat " + day);
+                System.out.println("Using default date (01-jan-1970)");
+                return LocalDate.of(1970,1, 1);
+            }
+            return LocalDate.of(year, month, day);
+        } catch (Exception e) {
+            System.out.println("ERROR: date conversion error, could not parse " + date);
+            System.out.println("Using default date (01-jan-1970)");
+            return LocalDate.of(1970,1, 1);
+        }
+    }
+     public static int getLibraryCard() {
+        return libraryCard + 1;
+     }
+
+    private Code errorCode(int codeNumber) {
+        for (Code code : Code.values()) {
+            if (code.getCode() == codeNumber) {
+                return code;
+            }
+        }
+        return Code.UNKNOWN_ERROR;
+    }
+
+    public String getName() {
+        return name;
+    }
+
 }
