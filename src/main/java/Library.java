@@ -443,4 +443,24 @@ public class Library {
         System.out.println("Could not find a reader with card #" + cardNumber);
         return null;
     }
+
+    public Code addReader(Reader reader) {
+        if(readers.contains(reader)) {
+            System.out.println(reader.getName() + " already has an account!");
+            return Code.READER_ALREADY_EXISTS_ERROR;
+        }
+
+        for (Reader r : readers) {
+            if (r.getCardNumber() == reader.getCardNumber()) {
+            System.out.println(r.getName() + " and " + reader.getName() + " have the same card number!");
+            return Code.READER_CARD_NUMBER_ERROR;
+            }
+        }
+        readers.add(reader);
+        System.out.println(reader.getName() + " added to the library!");
+        if (reader.getCardNumber() > libraryCard) {
+            libraryCard = reader.getCardNumber();
+        }
+        return Code.SUCCESS;
+    }
 }
