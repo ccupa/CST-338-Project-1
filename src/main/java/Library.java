@@ -2,7 +2,6 @@ import Utilities.Code;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -112,9 +111,9 @@ public class Library {
                 return Code.BOOK_RECORD_COUNT_ERROR;
             }
             String line = scan.nextLine();
-            String[] bits = line.split(", ", -1);
+            String[] bits = line.split(",", -1);
 
-            if (bits.length <= Book.DUE_DATE) {
+            if (bits.length < 6) {
                 return Code.BOOK_RECORD_COUNT_ERROR;
             }
 
@@ -358,18 +357,23 @@ public class Library {
 
     private Code initShelves(int shelfCount, Scanner scan) {
         if (shelfCount < 1) {
-            return Code.SHELF_NUMBER_PARSE_ERROR;
+            return Code.SHELF_COUNT_ERROR;
         }
+
+        int added = 0;
 
         for (int i = 0; i < shelfCount; i++) {
             if (!scan.hasNextLine()) {
                 return Code.SHELF_NUMBER_PARSE_ERROR;
             }
 
-
             String line = scan.nextLine();
-            String[] parts = line.split(", ", -1);
+            if (line.isEmpty()) {
+                i--;
+                continue;
+            }
 
+            String[] parts = line.split(",");
             if (parts.length < 2) {
                 return Code.SHELF_NUMBER_PARSE_ERROR;
             }
@@ -380,10 +384,15 @@ public class Library {
             }
 
             String shelfSubject = parts[1].trim();
-            addShelf(shelfSubject);
+
+            Code code = addShelf(shelfSubject);
+            if (code == Code.SUCCESS) {
+                added++;
+            } else if (code != Code.SHELF_EXISTS_ERROR);
+            return code;
         }
 
-        if (shelves.size() == shelfCount) {
+        if (added == shelfCount || shelves.size() >= shelfCount) {
             return Code.SUCCESS;
         } else {
             System.out.println("Number of shelves doesn't match expected");
@@ -431,7 +440,23 @@ public class Library {
 
 
     public static int convertInt(String recordCountString, Code code) {
-        return 0;
+        try {
+            return Integer.parseInt(recordCountString);
+        } catch (NumberFormatException e) {
+            System.out.println("Value which caused the error: " + recordCountString);
+            System.out.println("Error message: " + code.getMessage());
+
+            if (code == Code.BOOK_COUNT_ERROR) {
+                System.out.println("Error: Could not read number of books");
+            } else if (code == Code.PAGE_COUNT_ERROR) {
+                System.out.println("Error: could not parse page count");
+            } else if (code == Code.DATE_CONVERSION_ERROR) {
+                System.out.println("Error: Could not parse date component");
+            } else {
+                System.out.println("Error: Unknown conversion error");
+            }
+            return code.getCode();
+        }
     }
 
     public Reader getReaderByCard(int cardNumber) {
